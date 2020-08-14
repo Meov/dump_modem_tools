@@ -1,0 +1,4 @@
+1.<Dump>:dump memory的AP侧工具，放入/bin
+2.<get_data>:PC侧内存数据重建工具
+3.<Xfile>Xfile生成工具
+4.<Trace32 simrlator> 内存查看，axf汇编工具
