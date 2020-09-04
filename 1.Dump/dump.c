@@ -17,7 +17,7 @@
 #define MAX_NAME 80
 #define MAX_DATA_SIZE 1024*1024*200
 
-#define VERSION  "arm-0.3.2" //keep lasteet five data
+#define VERSION  "arm-0.3.3" //keep lastest five data
 
 extern char *optarg;
 extern int optind,opterr,optopt;
@@ -25,7 +25,7 @@ unsigned int record_num;
 struct file_property{
 	unsigned long base_addr;    		//base address of data
 	unsigned int data_length;   			//lenth of data to be saved
-	int split_size;			   				//split size
+	unsigned int split_size;			   				//split size
 	char file_save_path[FILEPATHMAX];  		//file save path
 	char name[MAX_NAME];             	  	//name
 };
@@ -99,14 +99,14 @@ static int data_dumped(struct file_property fp, int data_num,long len,int is_sin
 		printf("file:%s opened err\n",full_file_path);
 		return FILE_ERR;
 	}
-	fseek(file, 0, SEEK_END);//定位到文件末�
+	fseek(file, 0, SEEK_END);//locate at the end of the file
 	pu8 = (unsigned char*)fp.base_addr;
 	//printf("file:%s created OK\n",full_file_path);
 	fwrite(pu8,sizeof(char),len,file);  //4096 bytes write
 	if(is_single_finish){
 		printf("split %d write finished!\n",data_num);
 		sprintf(cmd_cmmand,"%s %s/%s.tar.bz2 -C %s/ %s.bin","tar -cjvf",fp.file_save_path,full_file_name,
-		fp.file_save_path,full_file_name);  //tar -cjvf ***.tar.bz2 ***.bin 
+				fp.file_save_path,full_file_name);   //tar -cjvf ***.tar.bz2 ***.bin
 		//printf("cmd_cmmand: %s\n",cmd_cmmand);
 		system(cmd_cmmand);													   
 		sprintf(cmd_cmmand,"%s %s/%s.bin","rm ",fp.file_save_path,full_file_name);   //rm ***.txt
@@ -119,11 +119,9 @@ static int data_dumped(struct file_property fp, int data_num,long len,int is_sin
 	return OK;
 }
 static int data_separated_dump(struct file_property fp){
-	unsigned char* data_started = NULL;
-	unsigned int data_offset = 0;
 	unsigned int split_num;
 	unsigned int split_4kb_num;
-	long page_size = sysconf(_SC_PAGESIZE);
+	unsigned long page_size = sysconf(_SC_PAGESIZE);
 	int is_single_finish = 0;
 	printf("Executed:\n");
 	printf("==============>file save   path: %s\n",fp.file_save_path);
@@ -268,7 +266,7 @@ static int parse_slpit_option(char *split_size, struct file_property *fp){
 	fp->split_size = int_split_size;
 	return OK;
 }
-static int pares_name_option(char *name_option,struct file_property *fp){
+static int parse_name_option(char *name_option,struct file_property *fp){
 	strcpy(fp->name,name_option);
 	return OK;
 }
@@ -400,7 +398,7 @@ int main(int argc,char *argv[]){
 			break;
 		case 'n':  //name set
 			if(optarg){
-				ret = pares_name_option(optarg,&fp_set);
+				ret = parse_name_option(optarg,&fp_set);
 				if (ret!= OK)
 				{
 					exit(6);
