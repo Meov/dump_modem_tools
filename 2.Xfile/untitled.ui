@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>815</width>
+    <height>807</height>
+   </rect>
+  </property>
+  <property name="font">
+   <font>
+    <family>Microsoft YaHei</family>
+    <weight>50</weight>
+    <bold>false</bold>
+   </font>
+  </property>
+  <property name="windowTitle">
+   <string>XfileGenerator</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QGridLayout" name="gridLayout_2">
+    <item row="6" column="0">
+     <layout class="QGridLayout" name="gridLayout">
+      <item row="1" column="2" colspan="2">
+       <widget class="QPushButton" name="dump_browse_Button">
+        <property name="text">
+         <string>浏览</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2" colspan="2">
+       <widget class="QPushButton" name="symButton">
+        <property name="text">
+         <string>浏览</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="symlabel">
+        <property name="text">
+         <string>Symbol File</string>
+        </property>
+        <property name="textFormat">
+         <enum>Qt::AutoText</enum>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="binfilelable">
+        <property name="text">
+         <string>Bin File</string>
+        </property>
+        <property name="indent">
+         <number>11</number>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QComboBox" name="combo_dump_name"/>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="splitlable">
+        <property name="text">
+         <string>Split Path</string>
+        </property>
+        <property name="indent">
+         <number>5</number>
+        </property>
+       </widget>
+      </item>
+      <item row="13" column="2">
+       <widget class="QPushButton" name="txtButton">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>75</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="whatsThis">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="text">
+         <string>保存</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLineEdit" name="dump_path_line">
+        <property name="placeholderText">
+         <string>选择分片文件保存路径</string>
+        </property>
+       </widget>
+      </item>
+      <item row="13" column="3">
+       <widget class="QPushButton" name="app_exit_Button">
+        <property name="text">
+         <string>退出</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLineEdit" name="symline">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="placeholderText">
+         <string>打开symbols文件</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="2" colspan="2">
+       <widget class="QPushButton" name="generateButton">
+        <property name="text">
+         <string>生成Xfile</string>
+        </property>
+       </widget>
+      </item>
+      <item row="12" column="0" colspan="4">
+       <widget class="QTextBrowser" name="xfileoutput">
+        <property name="font">
+         <font>
+          <family>Courier New</family>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="locale">
+         <locale language="English" country="UnitedStates"/>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>815</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuASF">
+    <property name="title">
+     <string>ASF</string>
+    </property>
+    <addaction name="separator"/>
+    <addaction name="actionSelectFile"/>
+    <addaction name="actionToSymsTbl"/>
+   </widget>
+   <widget class="QMenu" name="menuAdd2Line">
+    <property name="title">
+     <string>Add2Line</string>
+    </property>
+    <addaction name="separator"/>
+    <addaction name="actionSelectExe"/>
+   </widget>
+   <addaction name="menuASF"/>
+   <addaction name="menuAdd2Line"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionSelectFile">
+   <property name="text">
+    <string>SelectFile</string>
+   </property>
+  </action>
+  <action name="actionSelectExe">
+   <property name="text">
+    <string>SelectExe</string>
+   </property>
+  </action>
+  <action name="actionToSymsTbl">
+   <property name="text">
+    <string>ToSymsTbl</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+ <slots>
+  <slot>openDumpfile()</slot>
+  <slot>openSymfile()</slot>
+ </slots>
+</ui>

@@ -17,7 +17,7 @@
 #define MAX_NAME 80
 #define MAX_DATA_SIZE 1024*1024*200
 
-#define VERSION  "arm-0.3.3" //keep lastest five data
+#define VERSION  "arm-0.3.4" //keep lastest five data
 
 extern char *optarg;
 extern int optind,opterr,optopt;
