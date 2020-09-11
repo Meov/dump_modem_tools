@@ -406,14 +406,19 @@ class MainWindow(QMainWindow,Ui_MainWindow):
     
     def generateXfile(self):
         self.statusbar.showMessage('generating a xfile ...')
+
         if ((self.symfile == '') or ((".xlsx" in self.symfile[0])==False)):
             self.printXfile('no input symbol files...')
             return
         if(os.path.isfile(self.asfPath) == False):
             self.printXfile('no axf file ...')
             return 
+        if(os.path.isfile(self.add2linePath) == False):
+            self.printXfile('add2line not working')
+            return
 
-        self.getDumpfile() 
+        self.getDumpfile() #get dump bin file
+
         if (self.dumpfile == ''):
             self.printXfile('no input  dump files...')
             return          
@@ -465,6 +470,7 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         print(run)
         if run == "add2line not working":
             self.printXfile(run)
+            return
             #f.close()
             #sys.exit(1)
 
@@ -498,6 +504,7 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         self.combo_dump_name.clear()
         if names:
             self.combo_dump_name.addItems(names)
+            #pre check
             self.generateButton.setEnabled(True)
         else:
             self.printXfile(self.dump_split_file_dir + ": has no dumped files!")

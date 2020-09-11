@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['xfunc.py'],
-             pathex=['E:\\work\\Xfile'],
+             pathex=['E:\\CP-ARM\\cparm-tools\\cp_arm_tools_src\\2.Xfile'],
              binaries=[],
              datas=[],
              hiddenimports=[],
