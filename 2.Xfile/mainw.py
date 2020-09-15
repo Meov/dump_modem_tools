@@ -95,9 +95,9 @@ class DumpGetThread(QtCore.QThread):
             self.printXfile("path not right!")
             return
 
-class MemoryDialog(QDialog,Ui_Dialog_Mem):
+class MemoryShowDialog(QDialog,Ui_Dialog_Mem):
     def __init__(self,parent=None):
-        super(MemoryDialog,self).__init__(parent)
+        super(MemoryShowDialog,self).__init__(parent)
         self.setupUi(self)
         self.memory_content.setText(" ")
         self.mem_content_cancel.clicked.connect(self.cancle_dialog)
@@ -113,6 +113,7 @@ class MemoryDialog(QDialog,Ui_Dialog_Mem):
         self.memory_content.clear()
     def cancle_dialog(self):
         self.close()
+
 class QueryDialog(QDialog,Ui_Dialog_Query):
     expression_signal = QtCore.pyqtSignal(str)
     addr_signal = QtCore.pyqtSignal(str)
@@ -124,10 +125,12 @@ class QueryDialog(QDialog,Ui_Dialog_Query):
         self.Query_addr_Button.clicked.connect(self.lookup_addr_line)
     def lookup_line_value(self):
         #print(self.ValueQuery_line.text())
+        print("expression button")
         self.expression_signal.emit(str(self.ValueQuery_line.text()))
 
     def lookup_addr_line(self):
         #print(self.ValueQuryAddr_line.text())
+        print("addr button")
         self.addr_signal.emit(str(self.ValueQuryAddr_line.text()))
 
     def event(self, event):
@@ -136,7 +139,10 @@ class QueryDialog(QDialog,Ui_Dialog_Query):
             QWhatsThis.leaveWhatsThisMode()
         return QDialog.event(self,event)
 
+
 class MainWindow(QMainWindow,Ui_MainWindow):
+
+#initialize
     def __init__(self,parent=None):
         super(MainWindow,self).__init__(parent)
         self.setupUi(self)
@@ -150,7 +156,6 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         self.asfPath = 'L1860-MODEM.axf'
         self.add2linePath = './addr2line.exe'
         self.readelfPath = './readelf.exe'
-        #self.dumpButton.clicked.connect(self.openDumpfile)
         self.symButton.clicked.connect(self.openSymfile)
         self.generateButton.clicked.connect(self.generateXfile)
         self.txtButton.clicked.connect(self.saveTotxt)
@@ -159,16 +164,17 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         self.actionSelectExe.triggered.connect(self.selectAddr2line)
         self.generateButton.setEnabled(False)
         
-        #dialog
+        #dialog QueryDialog and MemoryShowDialog
         self.actionquery_item.triggered.connect(self.query_dialog_action)        
         self.query_dialog = QueryDialog()
         self.dump_browse_Button.clicked.connect(self.open_split_file_dir)
-        self.memory_window = MemoryDialog()
-  
-        #self.app_exit_Button.clicked.connect(self.dump_app_exit)
+        self.memory_window = MemoryShowDialog()
+        self.query_dialog.expression_signal.connect(self.get_expression_data)  #_siganl set
+        self.query_dialog.addr_signal.connect(self.get_addr_data)
+
+        #current directory default
         self.dump_split_file_dir = '.'
         self.dump_bin_save_dir = '.'
-        self.auto_close = False
 
         #progressbar
         self.progressBar.hide()
@@ -177,65 +183,72 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         self.progress_value = 0
         self.progressBar.setValue(self.progress_value)
 
+#query memory bi1n data
     def query_dialog_action(self):
         self.query_dialog.show()
-        self.query_dialog.expression_signal.connect(self.get_expression_data)
-        self.query_dialog.addr_signal.connect(self.get_addr_data)
+        
+    def memory_window_printmem(self,data,data_info):
+        self.memory_window.show()
+        self.memory_window.printMfile(" ")
+        self.memory_window.printMfile(data_info)
+        self.memory_window.printMfile(" ")
+        for i in range(len(data)//4):
+            self.memory_window.printMfile('0x'+'{0:0>8x} '.format(data[0+i*4])+ \
+            '0x'+'{0:0>8x} '.format(data[1+i*4])+ \
+            '0x'+'{0:0>8x} '.format(data[2+i*4])+ \
+            '0x'+'{0:0>8x} '.format(data[3+i*4]))
+        
+        for i in range(len(data)%4):
+            self.memory_window.printMfile('0x'+'{0:0>8x} ' .format(data[len(data)//4 *4 + i]))
 
     def get_addr_data(self,parametr):
-        #self.query_dialog.hide()
-        self.memory_window.show()
-        #print("sssssss")
         
-        
-        if(parametr == ''):
-            return
         if(self.stm == str_not_init):
+            QMessageBox.warning(self,"错误","mem data NOT initialized!!",QMessageBox.Ok) 
             return
-        filebin = open(self.dumpfile,mode='rb')
-        #print(filebin)
-        by = bytes(parametr,'UTF-8')    #先将输入的字符串转化成字节码
-        hexstring = by.hex() 
-        
+        try:
+            size = 512
+            addr = int(parametr,16)
+            try:                  
+                val = self.stm.toMemContent(addr,size)
+                datatype = "U32"
+                data = []
+                if datatype == "U32":
+                    for i in range(size//4):
+                        tmp = int.from_bytes(val[i*4:(i*4+4)],'little')
+                        data.append(tmp)
+                print(data)
+                data_info = "----Addr: "+ '0x'+'{0:0>8x} '.format(addr)+"----size:"+str(size)+"----"
 
-        filebin.seek(int(hexstring,16),0)
-        #print(filebin.tell())
-        dd = filebin.read(512)
-        print(dd)
-        
-
+                self.memory_window_printmem(data,data_info)
+            except:
+                print("cant open file :"+str(self.dumpfile))
+                self.memory_window.printMfile("can't open: "+'0x'+'{0:0>8x} '.format(addr))
+        except:
+            print("enter HEX only!")
+            QMessageBox.warning(self,"错误","HEX only!",QMessageBox.Ok)
+            
     def get_expression_data(self,parameter):
-        #self.query_dialog.hide()
-        self.memory_window.show()
-        print("ddddddd")
-        
         if(parameter == ''):
             print("no input data!")
+            QMessageBox.warning(self,"error","no input data!",QMessageBox.Ok) 
             return
         if(self.stm == str_not_init):
             print("mem data not initialized!")
-            self.memory_window.printMfile("mem data not initialized! ")
+            QMessageBox.warning(self,"error","mem data NOT initialized!!",QMessageBox.Ok) 
             return
-        
-        print("the value of "+ parameter + "is: ")       
+        print("the value of "+ parameter + "is: ")
         try:
-            
             data = self.get_symbol_meminfo(self.stm,parameter,"U32")
-            self.memory_window.printMfile("-------Expression: "+parameter+"----------Size: " \
-                +str(data[1])+"-----Addr: "+ '0x'+'{0:0>8x} '.format(data[0])+"-------")
-            for i in range(len(data[2])//4):
-                self.memory_window.printMfile('0x'+'{0:0>8x} '.format(data[2][0+i*4])+ \
-                '0x'+'{0:0>8x} '.format(data[2][1+i*4])+ \
-                '0x'+'{0:0>8x} '.format(data[2][2+i*4])+ \
-                '0x'+'{0:0>8x} '.format(data[2][3+i*4]))
-            
-            for i in range(len(data[2])%4):
-                self.memory_window.printMfile('0x'+'{0:0>8x} ' .format(data[2][len(data[2])//4 *4 + i]))
+            data_info = "---Expression: "+parameter+"----Size: " \
+                +str(data[1])+"----Addr: "+ '0x'+'{0:0>8x} '.format(data[0])+"----"
+            self.memory_window_printmem(data[2],data_info)
             print(data)
         except:
             print("can't find: "+parameter)
-            self.memory_window.printMfile("can't find: "+parameter)
-        
+            QMessageBox.warning(self,"error","mem data NOT initialized!!"+parameter,QMessageBox.Ok) 
+
+#Xfile creation
     def selectAsf(self):
         asfFile = QFileDialog.getOpenFileName(None, 'Open file', '.','axf file(*.axf *.elf)')
         if asfFile:
@@ -425,8 +438,6 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         #g_exc_undef_arr
         undefval = self.get_symbol_meminfo(SymToMem,regsym[4],"U32")
 
-
-
         regs=[]
         #fill r[0]-r[12]
         for i in range(0,13):
@@ -566,6 +577,7 @@ class MainWindow(QMainWindow,Ui_MainWindow):
             if(file_name):
                 dump_file = [file_name,self.dump_split_file_dir,self.dump_bin_save_dir]
                 self.statusbar.showMessage('generating a xfile ...')
+                self.printXfile('extractig bin file '+file_name+" ...")
                 self.timer.start(50)
                 self.thread = DumpGetThread(dump_file)
                 self.thread._signal.connect(self.callback_getdump)
@@ -581,7 +593,7 @@ class MainWindow(QMainWindow,Ui_MainWindow):
 
     def analyseXdata(self,dump_bin_path):
         self.statusbar.showMessage('generating a xfile ...')
-       
+        
         if ((self.symfile == '') or ((".xlsx" in self.symfile[0])==False)):
             self.printXfile('no input symbol files...')
             return
@@ -648,6 +660,7 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         fmtTxt = str(strTxt)
         print(f.write('{}'.format(fmtTxt)))
         f.close()   
+
 #get data
     def open_split_file_dir(self):
         self.dump_path = QFileDialog.getExistingDirectory(self, "请选择dump文件路径", ".")
@@ -666,39 +679,6 @@ class MainWindow(QMainWindow,Ui_MainWindow):
             self.printXfile(self.dump_split_file_dir + ": has no dumped files!")
             return
 
-    def getDumpfile(self):
-        
-        self.dump_split_file_dir = bincreat.get_file_dir(self.dump_split_file_dir)
-        self.dump_bin_save_dir = bincreat.get_file_dir(self.dump_split_file_dir)
-        
-        self.statusbar.clearMessage()
-        if (os.path.isdir(self.dump_split_file_dir) and (os.path.isdir(self.dump_bin_save_dir))):
-            file_name = self.combo_dump_name.currentText()
-            if(file_name):
-                self.printXfile("extrating data "+str(file_name)+"...")
-                bin_path = os.path.join(self.dump_bin_save_dir,file_name+".bin")
-                if os.path.exists(bin_path):   #delete existed files
-                    os.remove(bin_path)
-                
-                self.dump_split_file_dir = self.dump_split_file_dir.replace('/','\\')
-                self.dump_bin_save_dir = self.dump_bin_save_dir.replace('/','\\')
-                
-                bincreat.binary_file_create(self.dump_split_file_dir,self.dump_bin_save_dir,file_name)
-                  
-                bin_file_path = os.path.join( self.dump_bin_save_dir,file_name+".bin")
-                bin_file_path = bin_file_path.replace('\\','/')
-                self.printXfile("OK! " + file_name+".bin"+ " saved in: "+bin_file_path)
-                self.dumpfile = bin_file_path
-                print("get bin file :"+self.dumpfile)
-
-            else:
-                self.printXfile("could not find dumped files!")
-                self.statusbar.showMessage("err: could not find dumped files!")
-                return
-        else:
-            self.printXfile("path not right!")
-            return
-
     def open_dump_bin_dir(self):
         self.dump_bin_save_dir = bincreat.get_file_dir(self.dump_bin_save_dir)  
         if os.path.isdir(self.dump_bin_save_dir):
@@ -707,20 +687,23 @@ class MainWindow(QMainWindow,Ui_MainWindow):
             self.printXfile("path not right!")
             return
 
-    #closeEvent 
+#closeEvent 
     def closeEvent(self, event):  #overite closeEvent
+        '''
         reply = QMessageBox.question(self,
-                                               '本程序',
-                                               "是否要退出程序？",
-                                               QMessageBox.Yes | QMessageBox.No,
-                                               QMessageBox.No)
+                                        '本程序',
+                                        "是否要退出程序？",
+                                        QMessageBox.Yes | QMessageBox.No,
+                                        QMessageBox.No)
         if reply == QMessageBox.Yes:
             event.accept()
             sys.exit()
         else:
             event.ignore()
+        '''
+        sys.exit()
 
-    #progressBar 
+#progressBar 
     def callback_getdump(self,msg):
         global dump_file_path
         if msg == "created_ok":
