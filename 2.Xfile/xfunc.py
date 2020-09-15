@@ -10,7 +10,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QFileInfo,QEvent
 from PyQt5.QtWidgets import QFileDialog
 
-VERSION = "0.0.4"
+VERSION = "0.0.5"
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)

@@ -19,6 +19,9 @@ from Ui_untitled import *       #main window
 from Ui_querydialog import *    #query dialog
 from Ui_memory import *         #memory window
 from bin_creat import BinCreat
+
+VERSION = "VERSION 0.0.5"
+
 forsym = ['g_exc_desc_arr','s_exc_stat']
 regsym = ['g_exc_svc_arr', \
         'g_exc_sys_arr', \
@@ -45,13 +48,11 @@ work_mode = [
     'System MODE'
 ]
 
-
 bincreat = BinCreat()
 stack_flag = [0,0,0,0,0,0,0,4294967295]
 
 dump_file_path = ''
 str_not_init = 'not_initialized'
-
 
 class DumpGetThread(QtCore.QThread):
     #  define signal
@@ -125,19 +126,15 @@ class QueryDialog(QDialog,Ui_Dialog_Query):
         self.Query_Button.clicked.connect(self.lookup_line_value)
         self.Query_addr_Button.clicked.connect(self.lookup_addr_line)
     def lookup_line_value(self):
-        #print(self.ValueQuery_line.text())
-        print("expression button")
         self.expression_signal.emit(str(self.ValueQuery_line.text()))
 
     def lookup_addr_line(self):
-        #print(self.ValueQuryAddr_line.text())
-        print("addr button")
         self.addr_signal.emit(str(self.ValueQuryAddr_line.text()))
 
     def event(self, event):
         if event.type()==QEvent.EnterWhatsThisMode:
-            print('Help')
             QWhatsThis.leaveWhatsThisMode()
+            QMessageBox.warning(self,"版本",VERSION,QMessageBox.Ok)
         return QDialog.event(self,event)
 
 class MainWindow(QMainWindow,Ui_MainWindow):
@@ -186,6 +183,7 @@ class MainWindow(QMainWindow,Ui_MainWindow):
 #query memory bin data
     def query_dialog_action(self):
         self.query_dialog.show()
+        
         
     def memory_window_printmem(self,data,data_info):
         self.memory_window.show()
