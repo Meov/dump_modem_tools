@@ -24,7 +24,6 @@ class Ui_Dialog_Mem(object):
         self.mem_content_cancel = QtWidgets.QPushButton(Dialog_Mem)
         self.mem_content_cancel.setGeometry(QtCore.QRect(450, 350, 75, 23))
         self.mem_content_cancel.setObjectName("mem_content_cancel")
-
         self.retranslateUi(Dialog_Mem)
         QtCore.QMetaObject.connectSlotsByName(Dialog_Mem)
 

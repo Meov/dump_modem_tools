@@ -2,7 +2,6 @@
 
 import sys
 import os
-#import binascii
 import subprocess
 import struct
 import re
@@ -74,7 +73,7 @@ class DumpGetThread(QtCore.QThread):
         dump_bin_save_dir = bincreat.get_file_dir(self.dump_file[2])
         if (os.path.isdir(dump_split_file_dir) and (os.path.isdir(dump_bin_save_dir))):
             if(self.dump_file[0]):
-                print(dump_split_file_dir)
+                #print(dump_split_file_dir)
                 print(self.dump_file[0])
                 print(dump_bin_save_dir)
 
@@ -99,6 +98,7 @@ class MemoryShowDialog(QDialog,Ui_Dialog_Mem):
     def __init__(self,parent=None):
         super(MemoryShowDialog,self).__init__(parent)
         self.setupUi(self)
+        self.setFixedSize(self.width(),self.height())
         self.memory_content.setText(" ")
         self.mem_content_cancel.clicked.connect(self.cancle_dialog)
         self.mem_content_clear.clicked.connect(self.clear_dialog)
@@ -121,6 +121,7 @@ class QueryDialog(QDialog,Ui_Dialog_Query):
     def __init__(self,parent=None):
         super(QueryDialog,self).__init__(parent)
         self.setupUi(self)
+        self.setFixedSize(self.width(),self.height())
         self.Query_Button.clicked.connect(self.lookup_line_value)
         self.Query_addr_Button.clicked.connect(self.lookup_addr_line)
     def lookup_line_value(self):
@@ -138,7 +139,6 @@ class QueryDialog(QDialog,Ui_Dialog_Query):
             print('Help')
             QWhatsThis.leaveWhatsThisMode()
         return QDialog.event(self,event)
-
 
 class MainWindow(QMainWindow,Ui_MainWindow):
 
@@ -183,7 +183,7 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         self.progress_value = 0
         self.progressBar.setValue(self.progress_value)
 
-#query memory bi1n data
+#query memory bin data
     def query_dialog_action(self):
         self.query_dialog.show()
         
@@ -199,7 +199,8 @@ class MainWindow(QMainWindow,Ui_MainWindow):
             '0x'+'{0:0>8x} '.format(data[3+i*4]))
         
         for i in range(len(data)%4):
-            self.memory_window.printMfile('0x'+'{0:0>8x} ' .format(data[len(data)//4 *4 + i]))
+            #self.memory_window.printMfile('0x'+'{0:0>8x} ' .format(data[len(data)//4 *4 + i]))
+            self.memory_window.printMfile("---"+str(data[len(data)//4 *4 + i]))
 
     def get_addr_data(self,parametr):
         
@@ -218,7 +219,7 @@ class MainWindow(QMainWindow,Ui_MainWindow):
                         tmp = int.from_bytes(val[i*4:(i*4+4)],'little')
                         data.append(tmp)
                 print(data)
-                data_info = "----Addr: "+ '0x'+'{0:0>8x} '.format(addr)+"----size:"+str(size)+"----"
+                data_info = "----Addr: "+ '0x'+'{0:0>8x} '.format(addr)+"    size:"+str(size)+"----"
 
                 self.memory_window_printmem(data,data_info)
             except:
@@ -240,8 +241,8 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         print("the value of "+ parameter + "is: ")
         try:
             data = self.get_symbol_meminfo(self.stm,parameter,"U32")
-            data_info = "---Expression: "+parameter+"----Size: " \
-                +str(data[1])+"----Addr: "+ '0x'+'{0:0>8x} '.format(data[0])+"----"
+            data_info = "---Expression: "+parameter+"    Size: " \
+                +str(data[1])+"    Addr: "+ '0x'+'{0:0>8x} '.format(data[0])+"----"
             self.memory_window_printmem(data[2],data_info)
             print(data)
         except:
@@ -722,6 +723,3 @@ class MainWindow(QMainWindow,Ui_MainWindow):
             self.timer.stop()
             self.progress_value = 99
         self.progressBar.setValue(int(self.progress_value))
-
-
-    

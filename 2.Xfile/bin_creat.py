@@ -54,7 +54,8 @@ class BinCreat(object):
         for files_ in os.listdir(file_source_dir):
             if ((str(target_name) in files_) and (name_format in files_)):
                 data_to_extrat = os.path.join(file_source_dir,files_)
-                print(data_to_extrat)  
+                bin_file_path = data_to_extrat.replace('\\','/')  
+                print(bin_file_path)  
                 try:
                     tar = tarfile.open(data_to_extrat,"r:*",encoding='utf-8')
                 except IOError as e:
