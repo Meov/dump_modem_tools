@@ -42,10 +42,13 @@ class SymToMem(ConVerter):
     
     def toMemSize(self,symbol):
         size = self.info[symbol][1]
-        #print(size)
-        if(type(size) == str):
-            sz = int(size,16)
-            return sz
+        #print(size)     
+        try:
+            size = int(size)
+        except:
+            if(type(size) == str):
+                sz = int(size,16)
+                return sz
         return size
 
     def toMemContent(self,mAddr,size):
