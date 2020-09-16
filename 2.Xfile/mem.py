@@ -51,19 +51,19 @@ class SymToMem(ConVerter):
     def toMemContent(self,mAddr,size):
         #a = self.info[mAddr][0]
         val = mAddr
-
-
         dd=[]
-        filebin = open(self.memfile,mode='rb')
-        #print(filebin)
-        filebin.seek(val,0)
-        #print(filebin.tell())
-        dd = filebin.read(size)
-        #for i in range(size):
-        #    print(''),
-        #    print('%x' % ord(dd[i])),
+        try:
+            filebin = open(self.memfile,mode='rb')
+            #print(filebin)
+            filebin.seek(val,0)
+            dd = filebin.read(size)
+            #for i in range(size):
+            #    print(''),
+            #    print('%x' % ord(dd[i])),
 
-        filebin.close()
-        #print(dd)
-        #print(type(dd))
-        return dd
+            filebin.close()
+            #print(dd)
+            #print(type(dd))
+            return dd
+        except:
+            return

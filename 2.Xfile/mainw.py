@@ -51,7 +51,6 @@ work_mode = [
 bincreat = BinCreat()
 stack_flag = [0,0,0,0,0,0,0,4294967295]
 
-dump_file_path = ''
 str_not_init = 'not_initialized'
 
 class DumpGetThread(QtCore.QThread):
@@ -66,8 +65,6 @@ class DumpGetThread(QtCore.QThread):
         print("exit")
 
     def run(self):
-        global dump_file_path
-
         if  self.dump_file == '':
             return 
         dump_split_file_dir = bincreat.get_file_dir(self.dump_file[1])
@@ -84,9 +81,12 @@ class DumpGetThread(QtCore.QThread):
                 bincreat.binary_file_create(dump_split_file_dir,dump_bin_save_dir, self.dump_file[0])
 
                 #bin_file_path = os.path.join(dump_split_file_dir,self.dump_file[0]+".bin")
-                bin_file_path = bin_file_path.replace('\\','/')            
-                dump_file_path = bin_file_path                       
-                self._signal.emit("created_ok")  # 注意这里与_signal = pyqtSignal(str)中的类型相同
+                dump_file_path_str = bin_file_path.replace('\\','/')              
+                #self._signal.emit("created_ok")  # 注意这里与_signal = pyqtSignal(str)中的类型相同
+                
+                self._signal.emit(dump_file_path_str)
+
+
             else:
                 self.printXfile("could not find dumped files!")
                 self.statusbar.showMessage("err: could not find dumped files!")
@@ -129,7 +129,23 @@ class QueryDialog(QDialog,Ui_Dialog_Query):
         self.expression_signal.emit(str(self.ValueQuery_line.text()))
 
     def lookup_addr_line(self):
-        self.addr_signal.emit(str(self.ValueQuryAddr_line.text()))
+        addr =  self.ValueQureyAddr_line.text()
+        addr_size = self.QueryAddrLen_line.text()
+        #memory size is set to a multiple of 4 bytes as U32
+        if not addr_size:
+            addr_size = 512 #defualt 512 bytes
+        else:
+            try:
+                addr_size = int(addr_size)
+            except:
+                QMessageBox.warning(self,"error","integer only!",QMessageBox.Ok) 
+                return
+            if(addr_size%4 != 0):   #Round up by 4
+                addr_size = addr_size//4*4 + 4
+    
+        addr_info = addr+":"+str(addr_size)
+        print(addr_info)
+        self.addr_signal.emit(str(addr_info))
 
     def event(self, event):
         if event.type()==QEvent.EnterWhatsThisMode:
@@ -183,8 +199,6 @@ class MainWindow(QMainWindow,Ui_MainWindow):
 #query memory bin data
     def query_dialog_action(self):
         self.query_dialog.show()
-        
-        
     def memory_window_printmem(self,data,data_info):
         self.memory_window.show()
         self.memory_window.printMfile(" ")
@@ -197,36 +211,46 @@ class MainWindow(QMainWindow,Ui_MainWindow):
             '0x'+'{0:0>8x} '.format(data[3+i*4]))
         
         for i in range(len(data)%4):
-            #self.memory_window.printMfile('0x'+'{0:0>8x} ' .format(data[len(data)//4 *4 + i]))
-            self.memory_window.printMfile("---"+str(data[len(data)//4 *4 + i]))
+            self.memory_window.printMfile('0x'+'{0:0>8x} ' .format(data[len(data)//4 *4 + i]))
 
-    def get_addr_data(self,parametr):
+    def get_addr_data(self,parameter):  
+        addr_info = parameter.split(':')
+        addr = addr_info[0]
+        size = int(addr_info[1])
         
-        if(self.stm == str_not_init):
-            QMessageBox.warning(self,"错误","mem data NOT initialized!!",QMessageBox.Ok) 
+        if(addr ==' '):
+            print("no input data!")
+            QMessageBox.warning(self,"error","no input data!",QMessageBox.Ok) 
             return
-        try:
-            size = 512
-            addr = int(parametr,16)
-            try:                  
-                val = self.stm.toMemContent(addr,size)
-                datatype = "U32"
-                data = []
-                if datatype == "U32":
-                    for i in range(size//4):
-                        tmp = int.from_bytes(val[i*4:(i*4+4)],'little')
-                        data.append(tmp)
-                print(data)
-                data_info = "----Addr: "+ '0x'+'{0:0>8x} '.format(addr)+"    size:"+str(size)+"----"
-
-                self.memory_window_printmem(data,data_info)
-            except:
-                print("cant open file :"+str(self.dumpfile))
-                self.memory_window.printMfile("can't open: "+'0x'+'{0:0>8x} '.format(addr))
+        if(self.stm == str_not_init):
+            QMessageBox.warning(self,"error","mem data NOT initialized!!",QMessageBox.Ok) 
+            return
+        
+        try:    #check addr is hex format
+            addr = int(addr,16)
         except:
             print("enter HEX only!")
-            QMessageBox.warning(self,"错误","HEX only!",QMessageBox.Ok)
-            
+            QMessageBox.warning(self,"error","HEX only!",QMessageBox.Ok)
+            return
+        try:    #try to get memory data based on base addr and size    
+            val = self.stm.toMemContent(addr,size)
+            if val == '':
+                self.memory_window.printMfile("can't find: "+'0x'+'{0:0>8x} '.format(addr))
+                print("can't find :"+'0x'+'{0:0>8x} '.format(addr))
+                return
+            datatype = "U32"
+            data = []
+            if datatype == "U32":
+                for i in range(size//4):
+                    tmp = int.from_bytes(val[i*4:(i*4+4)],'little')
+                    data.append(tmp)
+            print(data)
+            data_info = "----Addr: "+ '0x'+'{0:0>8x} '.format(addr)+"    size:"+str(size)+"----"
+            self.memory_window_printmem(data,data_info)
+        except:
+            print("can't find :"+'0x'+'{0:0>8x} '.format(addr))
+            QMessageBox.warning(self,"error","can't find: "+'0x'+'{0:0>8x} '.format(addr),QMessageBox.Ok)   
+           
     def get_expression_data(self,parameter):
         if(parameter == ''):
             print("no input data!")
@@ -236,16 +260,17 @@ class MainWindow(QMainWindow,Ui_MainWindow):
             print("mem data not initialized!")
             QMessageBox.warning(self,"error","mem data NOT initialized!!",QMessageBox.Ok) 
             return
-        print("the value of "+ parameter + "is: ")
         try:
-            data = self.get_symbol_meminfo(self.stm,parameter,"U32")
+            data = self.get_symbol_meminfo(self.stm,parameter,"unknown")
+            
             data_info = "---Expression: "+parameter+"    Size: " \
                 +str(data[1])+"    Addr: "+ '0x'+'{0:0>8x} '.format(data[0])+"----"
             self.memory_window_printmem(data[2],data_info)
-            print(data)
+            #print("the value of "+ parameter + " is: ")
+            #print(data)
         except:
             print("can't find: "+parameter)
-            QMessageBox.warning(self,"error","mem data NOT initialized!!"+parameter,QMessageBox.Ok) 
+            QMessageBox.warning(self,"warning","can't find: "+parameter,QMessageBox.Ok) 
 
 #Xfile creation
     def selectAsf(self):
@@ -253,6 +278,7 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         if asfFile:
             self.asfPath = asfFile[0]
             self.statusbar.showMessage(self.asfPath)
+            self.printXfile("loaded: "+self.asfPath)
 
     def symtxtPreProcess(self,filename):
         if os.path.exists(filename):
@@ -282,18 +308,20 @@ class MainWindow(QMainWindow,Ui_MainWindow):
                 run = subprocess.Popen(execute,stdin=subprocess.PIPE,stdout=subprocess.PIPE, \
                     stderr=subprocess.STDOUT,bufsize=0)
                 out = run.communicate()
+                f = open(tblfilepath,'wb+')
+                f.write(out[0])
+                f.close
+                self.symtxtPreProcess(tblfilepath)
+                self.txt_to_xlsx('new_'+tblfilepath,'sym.xlsx')
             except:
                 return 
-            f = open(tblfilepath,'wb+')
-            f.write(out[0])
-            f.close
-            self.symtxtPreProcess(tblfilepath)
-            self.txt_to_xlsx('new_'+tblfilepath,'sym.xlsx')
             
     def selectAddr2line(self):
         add2lineFile = QFileDialog.getOpenFileName(None, 'Open file', '.','addr2line(*.exe)')
         self.add2linePath = add2lineFile[0]
-        self.statusbar.showMessage(self.add2linePath)   
+        self.statusbar.showMessage(self.add2linePath)
+        print("loaded: "+self.add2linePath)
+        self.printXfile("loaded: "+self.add2linePath)
              
     def txt_to_xlsx(self,filename,outfile):
         if(os.path.exists(filename)):
@@ -327,13 +355,27 @@ class MainWindow(QMainWindow,Ui_MainWindow):
     def get_symbol_meminfo(self,SymToMem,symbol,datatype=''):
         address = SymToMem.toMemaddress(symbol)
         size    = SymToMem.toMemSize(symbol)
-        data = SymToMem.toMemContent(address,size)
+        data    = SymToMem.toMemContent(address,size)
         val = []
+        
+        print(data)
+
         if datatype == "U32":
             for i in range(size//4):
                 #val += int(struct.unpack('I',data[i*4:(i*4+4)]))
                 tmp = int.from_bytes(data[i*4:(i*4+4)],'little')
                 #tmp = int(tmp,base=16)
+                val.append(tmp)
+        
+        #uncertain the size of varibles queried in the dialog
+        elif(datatype == "unknown"):
+            u32_num = 0
+            for i in range(size//4): 
+                tmp = int.from_bytes(data[i*4:(i*4+4)],'little')
+                val.append(tmp)
+                u32_num = i
+            if(size%4 != 0):
+                tmp = int.from_bytes(data[u32_num*4:u32_num*4+size%4],"little")
                 val.append(tmp)
 
         result = [address,size,val]
@@ -549,7 +591,7 @@ class MainWindow(QMainWindow,Ui_MainWindow):
                 stderr=subprocess.STDOUT,bufsize=0)
             out = run.communicate()
             retline.append(out)
-            print(out)
+            #print(out)
             #for line in iter(run.stdout.readline, b''):
             #    print line,
         return retline
@@ -577,7 +619,7 @@ class MainWindow(QMainWindow,Ui_MainWindow):
                 dump_file = [file_name,self.dump_split_file_dir,self.dump_bin_save_dir]
                 self.statusbar.showMessage('generating a xfile ...')
                 self.printXfile('extractig bin file '+file_name+" ...")
-                self.timer.start(50)
+                self.timer.start(50)  #50ms timeout to update progress bar
                 self.thread = DumpGetThread(dump_file)
                 self.thread._signal.connect(self.callback_getdump)
                 self.thread.start()
@@ -600,7 +642,7 @@ class MainWindow(QMainWindow,Ui_MainWindow):
             self.printXfile('no axf file ...')
             return 
         if(os.path.isfile(self.add2linePath) == False):
-            self.printXfile('add2line not working')
+            self.printXfile('add2line not working...')
             return
         if (dump_bin_path == ''):
             self.printXfile('no input  dump files...')
@@ -666,7 +708,6 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         self.dump_path_line.setText(str(self.dump_path))
         self.dump_split_file_dir = self.dump_path_line.text()
         names = bincreat.binary_file_name_get(self.dump_split_file_dir)
-        self.xfileoutput.clear()
         self.dumpfile = " "
         self.generateButton.setEnabled(False)
         self.combo_dump_name.clear()
@@ -703,18 +744,19 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         sys.exit()
 
 #progressBar 
-    def callback_getdump(self,msg):
-        global dump_file_path
-        if msg == "created_ok":
-            print("got sigal!")
-            self.progress_value = 100
-            self.progressBar.setValue(int(self.progress_value))
-            self.progress_value = 0
-            self.timer.stop()
-            self.printXfile("Created  file ok, saved in: "+ dump_file_path)
-            print(dump_file_path)
-            self.progressBar.hide()
-            self.analyseXdata(dump_file_path)
+    def callback_getdump(self,parameter):
+
+        #if msg == "created_ok":
+       
+        self.progress_value = 100
+        self.progressBar.setValue(int(self.progress_value))
+        self.progress_value = 0
+        self.timer.stop()
+        self.printXfile("Created  file ok, saved in: "+ parameter)
+        print(parameter)
+        self.progressBar.hide()
+        self.analyseXdata(parameter)
+        
     def update_progress(self):
         self.progress_value += 1
         if(self.progress_value >= 99):
