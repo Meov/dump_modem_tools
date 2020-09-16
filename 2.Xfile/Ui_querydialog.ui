@@ -6,53 +6,56 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>520</width>
-    <height>125</height>
+    <width>488</width>
+    <height>80</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>查找</string>
   </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>X.ico</normaloff>X.ico</iconset>
+  </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0">
-    <layout class="QHBoxLayout" name="horizontalLayout">
+   <item row="0" column="0" colspan="2">
+    <widget class="QLineEdit" name="ValueQuery_line">
+     <property name="placeholderText">
+      <string>输入变量名或者函数名</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="2" rowspan="2">
+    <layout class="QVBoxLayout" name="verticalLayout">
      <item>
-      <layout class="QVBoxLayout" name="verticalLayout_2">
-       <item>
-        <widget class="QLineEdit" name="ValueQuery_line">
-         <property name="placeholderText">
-          <string>输入变量名或者函数名</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLineEdit" name="ValueQuryAddr_line">
-         <property name="placeholderText">
-          <string>输入地址（16进制）</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
+      <widget class="QPushButton" name="Query_Button">
+       <property name="text">
+        <string>查询变量</string>
+       </property>
+      </widget>
      </item>
      <item>
-      <layout class="QVBoxLayout" name="verticalLayout">
-       <item>
-        <widget class="QPushButton" name="Query_Button">
-         <property name="text">
-          <string>查询变量</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="Query_addr_Button">
-         <property name="text">
-          <string>查询地址</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
+      <widget class="QPushButton" name="Query_addr_Button">
+       <property name="text">
+        <string>查询地址</string>
+       </property>
+      </widget>
      </item>
     </layout>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLineEdit" name="ValueQureyAddr_line">
+     <property name="placeholderText">
+      <string>输入地址（16进制)</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QLineEdit" name="QueryAddrLen_line">
+     <property name="placeholderText">
+      <string>字节长度（默认512字节）</string>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>

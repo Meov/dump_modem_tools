@@ -15,6 +15,9 @@ class Ui_Dialog_Mem(object):
     def setupUi(self, Dialog_Mem):
         Dialog_Mem.setObjectName("Dialog_Mem")
         Dialog_Mem.resize(532, 378)
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap(".\\X.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        Dialog_Mem.setWindowIcon(icon)
         self.memory_content = QtWidgets.QTextBrowser(Dialog_Mem)
         self.memory_content.setGeometry(QtCore.QRect(9, 9, 521, 331))
         self.memory_content.setObjectName("memory_content")
@@ -24,6 +27,7 @@ class Ui_Dialog_Mem(object):
         self.mem_content_cancel = QtWidgets.QPushButton(Dialog_Mem)
         self.mem_content_cancel.setGeometry(QtCore.QRect(450, 350, 75, 23))
         self.mem_content_cancel.setObjectName("mem_content_cancel")
+
         self.retranslateUi(Dialog_Mem)
         QtCore.QMetaObject.connectSlotsByName(Dialog_Mem)
 

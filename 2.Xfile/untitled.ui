@@ -20,6 +20,10 @@
   <property name="windowTitle">
    <string>XfileGenerator</string>
   </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>X.ico</normaloff>X.ico</iconset>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout_7">
     <item row="1" column="1">

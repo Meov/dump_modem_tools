@@ -15,6 +15,7 @@ from mem import SymToMem
 from PyQt5.QtWidgets import QMainWindow,QDialog,QWhatsThis
 from PyQt5.QtWidgets import QFileDialog,QMessageBox
 from PyQt5.QtCore import QTimer,QThread,pyqtSignal,QEvent
+from PyQt5.QtGui import QIcon
 from Ui_untitled import *       #main window
 from Ui_querydialog import *    #query dialog
 from Ui_memory import *         #memory window
@@ -99,6 +100,7 @@ class MemoryShowDialog(QDialog,Ui_Dialog_Mem):
     def __init__(self,parent=None):
         super(MemoryShowDialog,self).__init__(parent)
         self.setupUi(self)
+        self.setWindowIcon(QIcon("./X.ico"))
         self.setFixedSize(self.width(),self.height())
         self.memory_content.setText(" ")
         self.mem_content_cancel.clicked.connect(self.cancle_dialog)
@@ -122,6 +124,7 @@ class QueryDialog(QDialog,Ui_Dialog_Query):
     def __init__(self,parent=None):
         super(QueryDialog,self).__init__(parent)
         self.setupUi(self)
+        self.setWindowIcon(QIcon("./X.ico"))
         self.setFixedSize(self.width(),self.height())
         self.Query_Button.clicked.connect(self.lookup_line_value)
         self.Query_addr_Button.clicked.connect(self.lookup_addr_line)
@@ -161,6 +164,9 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         self.setupUi(self)
         #self.Title.setText("X-file generator")
         font = QtGui.QFont()
+        
+        self.setWindowIcon(QIcon("./X.ico"))
+        
         font.setFamily("Microsoft YaHei")
         self.xfileoutput.setFont(font)
         self.dumpfile = ''
@@ -357,8 +363,6 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         size    = SymToMem.toMemSize(symbol)
         data    = SymToMem.toMemContent(address,size)
         val = []
-        
-        print(data)
 
         if datatype == "U32":
             for i in range(size//4):
