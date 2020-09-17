@@ -477,7 +477,7 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         #g_exc_sys_arr
         sysval = self.get_symbol_meminfo(SymToMem,regsym[1],"U32")
         #g_exc_fiq_arr
-        fiqval = self.get_symbol_meminfo(SymToMem,regsym[5],"U32")
+        fiqval = self.get_symbol_meminfo(SymToMem,regsym[5],"U32")   
         #g_exc_abort_arr
         abortval = self.get_symbol_meminfo(SymToMem,regsym[3],"U32")
         #g_exc_undef_arr
@@ -487,77 +487,94 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         #fill r[0]-r[12]
         for i in range(0,13):
             regs.append(usrresv[2][i])
-        #is sys mode or fiq mode？
-        work_mode_str = self.get_work_mode(usrresv[2][13])
-        
-        if not work_mode_str:
-            return
-        #r13
-        #r14
-        if(work_mode_str == work_mode[6]):      #sys mode
-            regs.append(sysval[2][0])           #stack top g_exc_sys_arr[2]
-            regs.append(sysval[2][1])
-        elif(work_mode_str ==  work_mode[1]):   #fiq mode
-            regs.append(fiqval[2][0])
-            regs.append(fiqval[2][1])
-        elif(work_mode_str ==  work_mode[4]):   #abt mode
-            regs.append(abortval[2][0])
-            regs.append(abortval[2][1])
-        elif(work_mode_str == work_mode[5]):    #udef mode
-            regs.append(undefval[2][0])
-            regs.append(undefval[2][1])
-        else:
-            regs.append(usrval[2][0])   #r13(sp)  svc/usr mode
-            regs.append(usrval[2][1])   #r14(LR)
 
-
-       #R15(PC)
-        if rst_reason == RstReason[0]:  #'Data Abort'
+        #R13 R14 R15
+        #R15(PC) = R14(LR)
+        if rst_reason == RstReason[0]:  #Data Abort
             #g_exc_abort_arr
-            abt = self.get_symbol_meminfo(SymToMem,regsym[3],'U32')     
-            print(abt)
-            regs.append(abt[2][1]-8)     
+            work_mode_str = self.get_work_mode(abortval[2][2])
+            if(work_mode_str==work_mode[6]):    #sys mode
+                print("===sys mode abort err ===")
+                regs.append(sysval[2][0])
+                regs.append(sysval[2][1])
+            elif(work_mode_str==work_mode[1]):
+                print("===fiq mode abort err ===")
+                regs.append(fiqval[2][5])
+                regs.append(fiqval[2][6])
+            else:
+                print("===svc mode abort err ===")
+                regs.append(usrval[2][0])   #r13(sp)  svc/usr mode
+                regs.append(usrval[2][1])   #r14(LR)
+            print(abortval)
+            regs.append(abortval[2][1]-8)   #r15 ==>PC
         
-        elif rst_reason == RstReason[2]:    #"Prefech Abort ()"
+        if rst_reason == RstReason[2]:    #"Prefech Abort ()"
             #g_exc_abort_arr
-            abt = self.get_symbol_meminfo(SymToMem,regsym[3],'U32')
-            print(abt)
+            work_mode_str = self.get_work_mode(abortval[2][2])
+            if(work_mode_str==work_mode[6]):    #sys mode
+                regs.append(sysval[2][0])
+                regs.append(sysval[2][1])
+            elif(work_mode_str==work_mode[1]):
+                regs.append(fiqval[2][5])
+                regs.append(fiqval[2][6])
+            else:
+                regs.append(usrval[2][0])   #r13(sp)  svc/usr mode
+                regs.append(usrval[2][1])   #r14(LR)
+            print(abortval)
+            regs.append(abortval[2][1]-8)   #r15 ==>PC
             regs.append(usrval[2][1]-4)
-            
-        elif rst_reason == RstReason[3]:
-            #g_exc_und_arr
-            und = self.get_symbol_meminfo(SymToMem,regsym[4],'U32')
-            print(und)
-            if(work_mode_str == work_mode[6]):  #sys mode?
-                regs.append(sysval[2][2])  
+        
+        if rst_reason == RstReason[1]:  # Address 0x0 Jump Exception 
+            work_mode_str = self.get_work_mode(usrresv[2][13])
+            if(work_mode_str == work_mode[6]):  #sys mode
+                regs.append(sysval[2][0])
+                regs.append(sysval[2][1])
+                regs.append(sysval[2][1])
             elif(work_mode_str == work_mode[1]): #fiq mode
-                regs.append(fiqval[2][2])
+                regs.append(fiqval[2][5])
+                regs.append(fiqval[2][6])
+                regs.append(fiqval[2][6])
+            else:                               #svcmode
+                regs.append(usrval[2][0])
+                regs.append(usrval[2][1])
+                regs.append(usrval[2][1])
+        if rst_reason == RstReason[3]:  # undefine err
+            work_mode_str = self.get_work_mode(undefval[2][2])
+            if(work_mode_str ==  work_mode[6]): #sys mode
+                regs.append(sysval[2][0])
+                regs.append(sysval[2][1])
+                regs.append(sysval[2][1])
+            elif(work_mode_str ==  work_mode[1]): #fiq mode
+                regs.append(fiqval[2][5])
+                regs.append(fiqval[2][6])
+                regs.append(fiqval[2][6])
             else:
-                regs.append(und[2][1])
-       
-        elif rst_reason == RstReason[4]:    
-            #g_exc_assert_arr  need judge work mode
-            if(work_mode_str == work_mode[6]):  #sys mode?
-                regs.append(sysval[2][2])  
-            elif(work_mode_str == work_mode[1]): #fiq mode
-                regs.append(fiqval[2][2])
-            else:
+                regs.append(undefval[2][0]) 
+                regs.append(undefval[2][1])
+                regs.append(undefval[2][1])
+
+        if rst_reason == RstReason[4]:  #assert
+            work_mode_str = self.get_work_mode(usrresv[2][13])
+            if(work_mode_str ==  work_mode[6]):     #sys mode
+                regs.append(sysval[2][0])
+                regs.append(sysval[2][1])
+                regs.append(sysval[2][1])
+            elif(work_mode_str ==  work_mode[1]):   #fiq mode
+                regs.append(fiqval[2][5])
+                regs.append(fiqval[2][6])
+                regs.append(fiqval[2][6])
+            else:                                   #svc mode
+                regs.append(usrval[2][0])
+                regs.append(usrval[2][1])
                 regs.append(usrval[2][1])
         
-        elif rst_reason == RstReason[1]:
-            # Address 0x0 Jump Exception    need judge work modes
-            if(work_mode_str == work_mode[6]):  #sys mode?
-                regs.append(sysval[2][2])
-            elif(work_mode_str == work_mode[1]): #fiq mode
-                regs.append(fiqval[2][2])
-            else:
-                regs.append(usrval[2][1])
-        else:
-            regs.append(usrval[2][2])
-        
+        if rst_reason == RstReason[4]:  # Thread stack overflow
+            work_mode_str = self.get_work_mode(usrresv[2][13])
+            print("Thread stack overflow")
+
+
         for i in range(len(regs)):
             print("Reg[%d] = 0x%x" %(i,regs[i]))
-        
         rst_reason = rst_reason+'-----'+work_mode_str+'------'
 
         return (regs,rst_reason)
