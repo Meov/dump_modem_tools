@@ -16,7 +16,7 @@ from PyQt5.QtWidgets import QMainWindow,QDialog,QWhatsThis
 from PyQt5.QtWidgets import QFileDialog,QMessageBox
 from PyQt5.QtCore import QTimer,QThread,pyqtSignal,QEvent
 from PyQt5.QtGui import QIcon
-from Ui_untitled import *       #main window
+from Ui_mainwindow import *       #main window
 from Ui_querydialog import *    #query dialog
 from Ui_memory import *         #memory window
 from bin_creat import BinCreat
@@ -747,15 +747,21 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         if((name_bin_format in dump_files[0][0]) and (len(dump_files[0]) == 1)):    #found bin file  
             self.combo_dump_name.addItem(file_name[0])
             self.dumpfile = dump_files[0][0]
+            self.generateButton.setEnabled(True)
         else:
-            
-            file_name = file_name[0].split('-',2)
-            file_name = file_name[0]+'-'+file_name[1]
-            print(file_name)
-            self.dumpfile = "tar_file"
-            self.combo_dump_name.addItem(file_name)
+            try:
+                file_name = file_name[0].split('-',2)
+                file_name = file_name[0]+'-'+file_name[1]
+                print(file_name)
+                self.dumpfile = "tar_file"
+                self.combo_dump_name.addItem(file_name)
+                self.generateButton.setEnabled(True)
+            except:
+                print("split files must named as: XXX-X-X")
+                self.printXfile( "split files must named as: XXX-X-X")
+                return
+
         
-        self.generateButton.setEnabled(True)
 
     def callback_getdump(self,parameter): 
         self.progress_value = 100
