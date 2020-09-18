@@ -22,7 +22,7 @@ from Ui_memory import *         #memory window
 from bin_creat import BinCreat
 
 VERSION = "VERSION 0.0.5"
-
+name_bin_format = ".bin"
 forsym = ['g_exc_desc_arr','s_exc_stat']
 regsym = ['g_exc_svc_arr', \
         'g_exc_sys_arr', \
@@ -70,6 +70,14 @@ class DumpGetThread(QtCore.QThread):
             return 
         dump_split_file_dir = bincreat.get_file_dir(self.dump_file[1])
         dump_bin_save_dir = bincreat.get_file_dir(self.dump_file[2])
+
+
+        if(name_bin_format in self.dump_file[0]):  #.bin文件
+            bin_file_path = os.path.join(dump_split_file_dir,self.dump_file[0])
+            dump_file_path_str = bin_file_path.replace('\\','/')   
+            self._signal.emit(dump_file_path_str)
+            return
+
         if (os.path.isdir(dump_split_file_dir) and (os.path.isdir(dump_bin_save_dir))):
             if(self.dump_file[0]):
                 #print(dump_split_file_dir)
@@ -521,8 +529,7 @@ class MainWindow(QMainWindow,Ui_MainWindow):
                 regs.append(usrval[2][0])   #r13(sp)  svc/usr mode
                 regs.append(usrval[2][1])   #r14(LR)
             print(abortval)
-            regs.append(abortval[2][1]-8)   #r15 ==>PC
-            regs.append(usrval[2][1]-4)
+            regs.append(usrval[2][1]-4)     #abortval_r14 is broken
         
         if rst_reason == RstReason[1]:  # Address 0x0 Jump Exception 
             work_mode_str = self.get_work_mode(usrresv[2][13])
@@ -543,15 +550,16 @@ class MainWindow(QMainWindow,Ui_MainWindow):
             if(work_mode_str ==  work_mode[6]): #sys mode
                 regs.append(sysval[2][0])
                 regs.append(sysval[2][1])
-                regs.append(sysval[2][1])
+                #regs.append(sysval[2][1])
             elif(work_mode_str ==  work_mode[1]): #fiq mode
                 regs.append(fiqval[2][5])
                 regs.append(fiqval[2][6])
-                regs.append(fiqval[2][6])
+                #regs.append(fiqval[2][6])
             else:
                 regs.append(undefval[2][0]) 
                 regs.append(undefval[2][1])
-                regs.append(undefval[2][1])
+            #R15
+            regs.append(undefval[2][1])-4
 
         if rst_reason == RstReason[4]:  #assert
             work_mode_str = self.get_work_mode(usrresv[2][13])
@@ -739,6 +747,8 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         else:
             self.printXfile(self.dump_split_file_dir + ": has no dumped files!")
             return
+
+
 
     def open_dump_bin_dir(self):
         self.dump_bin_save_dir = bincreat.get_file_dir(self.dump_bin_save_dir)  

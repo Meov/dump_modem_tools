@@ -7,6 +7,7 @@ import re
 import getopt
 
 name_format = ".tar.bz2" #"tar.bz2" 
+name_bin_format = ".bin"   
 class BinCreat(object):
 
     def __init__(self,parent=None):
@@ -36,6 +37,10 @@ class BinCreat(object):
                 file_ = files.split('-',2)
                 target_file.append( file_[0]+'-'+file_[1])  #get data string name
                 has_tar_file = True
+
+            if(name_bin_format in files):
+                target_file.append(files)
+
         if not has_tar_file:
             print("path :%s has no dumped file-----> end up with %s"%(file_dir,name_format))
             #exit(0)
