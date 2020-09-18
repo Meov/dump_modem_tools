@@ -53,7 +53,7 @@ bincreat = BinCreat()
 stack_flag = [0,0,0,0,0,0,0,4294967295]
 
 str_not_init = 'not_initialized'
-
+name_tar_format = ".tar.bz2"
 class DumpGetThread(QtCore.QThread):
     #  define signal
     _signal = pyqtSignal(str)
@@ -194,7 +194,7 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         #dialog QueryDialog and MemoryShowDialog
         self.actionquery_item.triggered.connect(self.query_dialog_action)        
         self.query_dialog = QueryDialog()
-        self.dump_browse_Button.clicked.connect(self.open_split_file_dir)
+        self.dump_browse_Button.clicked.connect(self.open_bin_file)
         self.memory_window = MemoryShowDialog()
         self.query_dialog.expression_signal.connect(self.get_expression_data)  #_siganl set
         self.query_dialog.addr_signal.connect(self.get_addr_data)
@@ -638,13 +638,16 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         # was suggested for smooth showing
         QtWidgets.QApplication.processEvents()
     
-    def generateXfile(self):    
-        self.progressBar.setValue(self.progress_value)
-        self.dump_split_file_dir = bincreat.get_file_dir(self.dump_split_file_dir)
-        self.dump_bin_save_dir = bincreat.get_file_dir(self.dump_split_file_dir)
-        if (os.path.isdir(self.dump_split_file_dir) and (os.path.isdir(self.dump_bin_save_dir))):
-            file_name = self.combo_dump_name.currentText()
-            if(file_name):
+    def generateXfile(self):
+        if self.dumpfile != "tar_file":
+            self.analyseXdata(self.dumpfile)
+        else:   #need extract .tar.bz2 files
+            self.progressBar.setValue(self.progress_value)
+            self.dump_split_file_dir = bincreat.get_file_dir(self.dump_split_file_dir)
+            self.dump_bin_save_dir = bincreat.get_file_dir(self.dump_split_file_dir)
+            
+            if (os.path.isdir(self.dump_split_file_dir) and (os.path.isdir(self.dump_bin_save_dir))):
+                file_name = self.combo_dump_name.currentText()
                 dump_file = [file_name,self.dump_split_file_dir,self.dump_bin_save_dir]
                 self.statusbar.showMessage('generating a xfile ...')
                 self.printXfile('extractig bin file '+file_name+" ...")
@@ -653,13 +656,9 @@ class MainWindow(QMainWindow,Ui_MainWindow):
                 self.thread._signal.connect(self.callback_getdump)
                 self.thread.start()
                 self.progressBar.show()
-                self.statusbar.clearMessage()
             else:
-                self.printXfile("could not find dumped files!")
+                self.printXfile("path not right!")
                 return
-        else:
-            self.printXfile("path not right!")
-            return
 
     def analyseXdata(self,dump_bin_path):
         self.statusbar.showMessage('generating a xfile ...')
@@ -676,12 +675,10 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         if (dump_bin_path == ''):
             self.printXfile('no input  dump files...')
             return
-        
-        self.dumpfile = dump_bin_path
 
-        self.stm = self.initialize(self.symfile[0],self.dumpfile)
+        self.stm = self.initialize(self.symfile[0],dump_bin_path)
         print(self.symfile[0])
-        print(self.dumpfile)      
+        print(dump_bin_path)      
         self.xfileoutput.clear()     
         rst_reason = self.get_reset_reason(self.stm)
     
@@ -732,53 +729,35 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         f.close()   
 
 #get data
-    def open_split_file_dir(self):
-        self.dump_path = QFileDialog.getExistingDirectory(self, "请选择dump文件路径", ".")
-        self.dump_path_line.setText(str(self.dump_path))
-        self.dump_split_file_dir = self.dump_path_line.text()
-        names = bincreat.binary_file_name_get(self.dump_split_file_dir)
-        self.dumpfile = " "
-        self.generateButton.setEnabled(False)
+    def open_bin_file(self):
+        
         self.combo_dump_name.clear()
-        if names:
-            self.combo_dump_name.addItems(names)
-            #pre check
-            self.generateButton.setEnabled(True)
-        else:
-            self.printXfile(self.dump_split_file_dir + ": has no dumped files!")
+        self.dumpfile = " "
+        dump_files = QFileDialog.getOpenFileNames(self,"open file",'.','dump files(*.tar.bz2 *.bin)')
+        if not dump_files[0]:
+            print("No bin file")
+            self.printXfile( "No .bin or .tar.bz2 files!")
             return
-
-
-
-    def open_dump_bin_dir(self):
-        self.dump_bin_save_dir = bincreat.get_file_dir(self.dump_bin_save_dir)  
-        if os.path.isdir(self.dump_bin_save_dir):
-            os.system("start explorer " + self.dump_bin_save_dir)
+        
+        self.dump_split_file_dir, file_name = os.path.split(dump_files[0][0])
+        self.dump_path_line.setText(str(self.dump_split_file_dir))
+        
+        file_name = file_name.split('.',2)
+        
+        if((name_bin_format in dump_files[0][0]) and (len(dump_files[0]) == 1)):    #found bin file  
+            self.combo_dump_name.addItem(file_name[0])
+            self.dumpfile = dump_files[0][0]
         else:
-            self.printXfile("path not right!")
-            return
+            
+            file_name = file_name[0].split('-',2)
+            file_name = file_name[0]+'-'+file_name[1]
+            print(file_name)
+            self.dumpfile = "tar_file"
+            self.combo_dump_name.addItem(file_name)
+        
+        self.generateButton.setEnabled(True)
 
-#closeEvent 
-    def closeEvent(self, event):  #overite closeEvent
-        '''
-        reply = QMessageBox.question(self,
-                                        '本程序',
-                                        "是否要退出程序？",
-                                        QMessageBox.Yes | QMessageBox.No,
-                                        QMessageBox.No)
-        if reply == QMessageBox.Yes:
-            event.accept()
-            sys.exit()
-        else:
-            event.ignore()
-        '''
-        sys.exit()
-
-#progressBar 
-    def callback_getdump(self,parameter):
-
-        #if msg == "created_ok":
-       
+    def callback_getdump(self,parameter): 
         self.progress_value = 100
         self.progressBar.setValue(int(self.progress_value))
         self.progress_value = 0
@@ -787,7 +766,12 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         print(parameter)
         self.progressBar.hide()
         self.analyseXdata(parameter)
-        
+
+#closeEvent 
+    def closeEvent(self, event):  #overite closeEvent
+        sys.exit()
+
+#progressBar    
     def update_progress(self):
         self.progress_value += 1
         if(self.progress_value >= 99):

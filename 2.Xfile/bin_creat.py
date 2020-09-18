@@ -6,7 +6,7 @@ import bz2
 import re
 import getopt
 
-name_format = ".tar.bz2" #"tar.bz2" 
+name_tar_format = ".tar.bz2" #"tar.bz2" 
 name_bin_format = ".bin"   
 class BinCreat(object):
 
@@ -32,17 +32,13 @@ class BinCreat(object):
        
         has_tar_file = False
         for files in os.listdir(file_dir):  
-            if ((name_str in files) and (name_format in files)):   #ensure "name" and "name_format" are included in the file
+            if ((name_str in files) and (name_tar_format in files)):   #ensure "name" and "name_format" are included in the file
                 #print("name:"+name+"file+"+files)
                 file_ = files.split('-',2)
                 target_file.append( file_[0]+'-'+file_[1])  #get data string name
                 has_tar_file = True
-
-            if(name_bin_format in files):
-                target_file.append(files)
-
         if not has_tar_file:
-            print("path :%s has no dumped file-----> end up with %s"%(file_dir,name_format))
+            print("path :%s has no dumped file-----> end up with %s"%(file_dir,name_tar_format))
             #exit(0)
         return list(set(target_file))   #duplicate removal
         
@@ -57,7 +53,7 @@ class BinCreat(object):
  
     def file_extract(self,file_source_dir,target_name,file_target_dir):
         for files_ in os.listdir(file_source_dir):
-            if ((str(target_name) in files_) and (name_format in files_)):
+            if ((str(target_name) in files_) and (name_tar_format in files_)):
                 data_to_extrat = os.path.join(file_source_dir,files_)
                 bin_file_path = data_to_extrat.replace('\\','/')  
                 print(bin_file_path)  
