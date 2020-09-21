@@ -497,6 +497,21 @@ class MainWindow(QMainWindow,Ui_MainWindow):
             r14 = self.sysval[2][1]
             r15 = self.sysval[2][1]
             print(current_work_mode)
+        elif current_work_mode == work_mode[4]: #abt
+            r13 = self.abortval[2][0]
+            r14 = self.abortval[2][1]
+            r15 = self.abortval[2][1]
+            print(current_work_mode)
+        elif current_work_mode == work_mode[5]:  #udf
+            r13 = self.undefval[2][0]
+            r14 = self.undefval[2][1]
+            r15 = self.undefval[2][1]
+            print(current_work_mode)
+        elif current_work_mode == work_mode[2]: #irq
+            r13 = self.undefval[2][0]
+            r14 = self.undefval[2][1]
+            r15 = self.undefval[2][1]
+            print(current_work_mode)
         else:                                   #svc
             r13 = self.usrval[2][0]
             r14 = self.usrval[2][1]
