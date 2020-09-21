@@ -431,6 +431,7 @@ class MainWindow(QMainWindow,Ui_MainWindow):
             self.printXfile('{:0>X}'.format(rstval)+"...not a reset...")
             f.close()
             print('No Reset found ...')
+            return
             #exit(0) 
 
         #Step 2: find reset reason
@@ -676,7 +677,8 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         print(dump_bin_path)      
         self.xfileoutput.clear()     
         rst_reason = self.get_reset_reason(self.stm)
-    
+        if not rst_reason:
+            return
         ret = self.get_cpu_registers(self.stm,rst_reason)
         if not ret:
             return
