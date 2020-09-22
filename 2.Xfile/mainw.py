@@ -715,7 +715,12 @@ class MainWindow(QMainWindow,Ui_MainWindow):
 
         for i in range(len(run)):
             self.printXfile("%d : " %i),
-            self.printXfile(run[i][0].decode().replace('\r',''))
+            stack_fun = run[i][0].decode()
+            if("BFD:" in stack_fun):
+                stack_fun = stack_fun.split('BFD:',2)
+                stack_fun = stack_fun[0]
+            print(i + ':' + stack_fun)
+            self.printXfile(stack_fun.replace('\r',''))
         self.printXfile('\n---------------End of Xfile---------------\n')
 
     def saveTotxt(self):
