@@ -719,7 +719,6 @@ class MainWindow(QMainWindow,Ui_MainWindow):
             if("BFD:" in stack_fun):
                 stack_fun = stack_fun.split('BFD:',2)
                 stack_fun = stack_fun[0]
-            print(i + ':' + stack_fun)
             self.printXfile(stack_fun.replace('\r',''))
         self.printXfile('\n---------------End of Xfile---------------\n')
 
