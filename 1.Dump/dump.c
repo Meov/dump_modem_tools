@@ -17,7 +17,7 @@
 #define MAX_NAME 80
 #define MAX_DATA_SIZE 1024*1024*200
 
-#define VERSION  "arm-0.3.4" //keep lastest five data
+#define VERSION  "arm-0.3.5" //keep lastest five data
 
 extern char *optarg;
 extern int optind,opterr,optopt;
@@ -31,7 +31,7 @@ struct file_property{
 };
 struct file_property fileproperty = {
 	.base_addr = 0,
-	.data_length = 0,
+	.data_length = 1024*1024*200,
 	.split_size = 1,
 	.name = "data",
 	.file_save_path = "cl", //current location
@@ -127,7 +127,7 @@ static int data_separated_dump(struct file_property fp){
 	printf("==============>file save   path: %s\n",fp.file_save_path);
 	printf("==============>file save length: %d\n",fp.data_length);
 	printf("==============>file split  size: %d\n",fp.split_size);
-	printf("==============>file split  name: %s\n",fp.name);
+	printf("==============>file 	   name: %s\n",fp.name);
 	printf("==============>file base   addr: 0x%lx\n",fp.base_addr);
 
 	for(split_num = 0; split_num < fp.split_size; split_num++){
@@ -146,7 +146,7 @@ static int data_separated_dump(struct file_property fp){
 }
 static int ap_query_cp_memory(struct file_property fp){
 	const char *path = "/dev/modem";
-//	const char *path = "/mnt/hgfs/Share/work/linux-app/file_system/data-0.bin";
+//	const char *path = "/home/chao-zhang/Desktop/data-0.bin";
 	//const char *path = "/home/chao-zhang/1.mp4";
 	int fd = -1;
 	void *map_addr = NULL;
@@ -173,14 +173,14 @@ static int ap_query_cp_memory(struct file_property fp){
 	return OK;
 }
 //parameers check
-static int parameter_cheak(struct file_property *fp){
+static int parameter_check(struct file_property *fp){
 	char cuurent_path[FILEPATHMAX];
 	DIR *d = NULL;
 	unsigned long long per_data_size;   //per data size
 	long page_size = sysconf(_SC_PAGESIZE);
 	getcwd(cuurent_path,FILEPATHMAX);
 	
-	if(strcmp(fp->file_save_path,"cl")){
+	if(strcmp(fp->file_save_path,"cl")){	//not defaulted location
 		d = opendir(fp->file_save_path);
 		if(d == NULL){
 			printf("path not right, default path (current) is used!\n");
@@ -188,6 +188,7 @@ static int parameter_cheak(struct file_property *fp){
 			closedir(d);
 			return PATH_NOTFOUND;
 		}
+		closedir(d);
 	}else{
 		strcpy(fp->file_save_path,cuurent_path);
 	}
@@ -336,15 +337,15 @@ int main(int argc,char *argv[]){
 	
 	printf("VERSION:%s\n",VERSION);
 	
-	if(argc<2){	
-		printf("Usage:\n");
-		printf("	-l:data lenth     <dec format>  (n*4096)\n");
-		printf("	[-a:base addrress <hex format>] default:0\n");
-		printf("	[-d:location]                   default:current path\n");
-		printf("	[-s:split number  <dec format>  default:1]\n");
-		printf("	[-n:name                        default:data-dumpednumber-splitnumber]\n");
-		return FEW_PARAMETERS;
-	}	
+	//if(argc<1){	
+	printf("Usage:\n");
+	printf("	[-l:data lenth     <dec format>  (n*4096)]\n");
+	printf("	[-a:base addrress <hex format> default:0]\n");
+	printf("	[-d:location                   default:current path]\n");
+	printf("	[-s:split number  <dec format>  default:1]\n");
+	printf("	[-n:name                        default:data-dumpednumber-splitnumber]\n");
+		//return FEW_PARAMETERS;
+	//}	
 	//printf("pid : %d\n",getpid());
 	while((cmd = getopt(argc, argv,"a:l:d:s:n:"))!=-1){  //getopt will retrn -1 when all the parameters are listed
 		switch (cmd)
@@ -419,7 +420,7 @@ int main(int argc,char *argv[]){
 		return -1;
 	}
 	//option parameter check path and disk size check	
-	if(parameter_cheak(&fp_set)!=OK) return -1;
+	if(parameter_check(&fp_set)!=OK) return -1;
 	//check wether has 5th data savedS
 	file_existed_check(fp_set);  
 
@@ -428,7 +429,7 @@ int main(int argc,char *argv[]){
 	printf("==============>file save   path: %s\n",fileproperty.file_save_path);
 	printf("==============>file save length: %d\n",fileproperty.data_length);
 	printf("==============>file split  size: %d\n",fileproperty.split_size);
-	printf("==============>file split  name: %s\n",fileproperty.name);
+	printf("==============>file name  name: %s\n",fileproperty.name);
 	printf("==============>file base   addr: 0x%lx\n",fileproperty.base_addr);
 
 	ap_query_cp_memory(fileproperty);
