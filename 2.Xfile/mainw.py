@@ -326,6 +326,7 @@ class MainWindow(QMainWindow,Ui_MainWindow):
             self.readelfPath = readelfFile[0]
             self.statusbar.showMessage(self.readelfPath)
             tblfilepath = "symbols.txt"
+            #readelf -s show items in symble table
             execute = [self.readelfPath,'-s',self.asfPath]
             try:
                 run = subprocess.Popen(execute,stdin=subprocess.PIPE,stdout=subprocess.PIPE, \

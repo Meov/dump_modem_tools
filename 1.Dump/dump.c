@@ -146,8 +146,6 @@ static int data_separated_dump(struct file_property fp){
 }
 static int ap_query_cp_memory(struct file_property fp){
 	const char *path = "/dev/modem";
-//	const char *path = "/home/chao-zhang/Desktop/data-0.bin";
-	//const char *path = "/home/chao-zhang/1.mp4";
 	int fd = -1;
 	void *map_addr = NULL;
 	fd = open(path,O_RDWR);
@@ -163,16 +161,14 @@ static int ap_query_cp_memory(struct file_property fp){
 		return -ENOMEM;
 	}
 	printf("\n\n");
-	//printf("=====================>file vertual base addr = %llx\n", (unsigned long long )map_addr);
 	fp.base_addr += (unsigned long )map_addr;
-	printf("=====================>file vertual base addr + base_addr given = s%lx\n",fp.base_addr);
 	printf("\n\n");
 	data_separated_dump(fp);
 	munmap(map_addr,200*1024*1024);
 	close(fd);
 	return OK;
 }
-//parameers check
+//parameters check
 static int parameter_check(struct file_property *fp){
 	char cuurent_path[FILEPATHMAX];
 	DIR *d = NULL;
@@ -201,7 +197,7 @@ static int parameter_check(struct file_property *fp){
 		printf(" err : %s: Lack of space, free: %llu byte\n",fp->file_save_path,disk_space_sount);
 		return FEW_MEMORY;
 	}
-	//printf(" %s: Lack of space, free: %llu byte\n",fp->file_save_path,disk_space_sount);
+	//printf(" %s: Lack of space, free: %llu bytes\n",fp->file_save_path,disk_space_sount);
 	//base addr check!
 	if(fp->base_addr % page_size != 0){
 		printf(" ------------------>addr  must be an intergral muiltiple of 4096byte\n");
@@ -289,8 +285,7 @@ static int file_existed_check(struct file_property fp){
 	/*
 	e.g.   data-10-1.tar.gz
 		   data===> "name"   10===>"record number"  1:====>"split number"
-
-
+		   
 		(1)	dot_ret = string begin at first "."  line_ret =  string begin at first "-" 
 		(2)	num_line_str = string "10-1"
 		(3) line_ret_ = string begin at "-" of num_line_str
@@ -298,7 +293,7 @@ static int file_existed_check(struct file_property fp){
 		complex!!!
 	*/
 	while((ptr = readdir(dir)) != NULL){
-		dot_ret = strstr(ptr->d_name,".tar.bz2"); //find the file end with .tar.gz
+		dot_ret = strstr(ptr->d_name,".tar.bz2"); //find the file end with .tar.bz2
 		if(dot_ret != NULL){
 			line_ret = strstr(ptr->d_name,"-");
 			if(strlen(fp.name) == ((line_ret-ptr->d_name)/sizeof(char))){ //same length
@@ -306,7 +301,7 @@ static int file_existed_check(struct file_property fp){
 					strncpy(num_line_str,line_ret+1,(dot_ret-line_ret)/sizeof(char)); //get the record number
 					line_ret_ = strstr(num_line_str,"-");		
 					strncpy(record_number_addr,num_line_str,(line_ret_-num_line_str)/sizeof(char));				
-					sscanf(record_number_addr,"%d",&record_num);
+					sscanf(record_number_addr,"%d",&record_numrecord_num);
 					memset(record_number_addr,0,20);  //clear record_num_str[]	
 					if(record_num > writed_number){
 						writed_number = record_num;
@@ -324,7 +319,6 @@ static int file_existed_check(struct file_property fp){
 		}
 	}
     closedir(dir);
-	//printf("======================================>record_num: %d\n",record_num);
     return 0;
 }
 
