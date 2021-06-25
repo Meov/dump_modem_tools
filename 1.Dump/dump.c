@@ -301,7 +301,7 @@ static int file_existed_check(struct file_property fp){
 					strncpy(num_line_str,line_ret+1,(dot_ret-line_ret)/sizeof(char)); //get the record number
 					line_ret_ = strstr(num_line_str,"-");		
 					strncpy(record_number_addr,num_line_str,(line_ret_-num_line_str)/sizeof(char));				
-					sscanf(record_number_addr,"%d",&record_numrecord_num);
+					sscanf(record_number_addr,"%d",&record_num);
 					memset(record_number_addr,0,20);  //clear record_num_str[]	
 					if(record_num > writed_number){
 						writed_number = record_num;
